@@ -1,0 +1,62 @@
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: lax
+  error:
+    include-message: never
+    include-stacktrace: never
+
+spring:
+  application:
+    name: ums-web
+  datasource:
+    # Schema "ums" is created by Flyway; currentSchema makes it the default for every query.
+    url: ${UMS_DB_URL:jdbc:postgresql://localhost:5432/ums_web?currentSchema=ums}
+    username: ${UMS_DB_USER:postgres}
+    password: ${UMS_DB_PASSWORD:postgres}
+    hikari:
+      pool-name: ums-pool
+      maximum-pool-size: 10
+      minimum-idle: 2
+  flyway:
+    schemas: ums
+    default-schema: ums
+    # Demo data lives in db/demo. For a clean production database start with UMS_FLYWAY_EXTRA= (empty).
+    locations: classpath:db/migration${UMS_FLYWAY_EXTRA:,classpath:db/demo}
+  jackson:
+    default-property-inclusion: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+ums:
+  demo-password: ${UMS_DEMO_PASSWORD:DemoPass@2026}
+  credit-limit: 26
+  attendance-threshold: 75
+  console:
+    row-limit: 200
+    timeout-ms: 5000
+  ai:
+    # Order: Claude if ANTHROPIC_API_KEY is set, else local Ollama (first installed qwen model unless UMS_OLLAMA_MODEL is set), else built-in.
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: ${UMS_AI_MODEL:claude-sonnet-5-5}
+    max-tokens: 700
+    timeout-seconds: 25
+    ollama-url: ${UMS_OLLAMA_URL:http://localhost:11434}
+    ollama-model: ${UMS_OLLAMA_MODEL:}
+    ollama-timeout-seconds: 90
+
+logging:
+  level:
+    root: INFO
+    edu.ums: INFO
